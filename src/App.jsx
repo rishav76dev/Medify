@@ -8,6 +8,7 @@ import MyProfille from './pages/MyProfile.jsx';
 import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
+import Footer from './components/Footer.jsx';
 
 const App = () => {
 
@@ -26,8 +27,7 @@ const App = () => {
         <Route path="/appointment/:docId" element={<MyAppointment/>} />
         <Route path="/appointment" element={<MyAppointment/>} />
       </Routes>
-      
-      
+      <Footer/>    
     </div>
     
   )

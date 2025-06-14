@@ -2,8 +2,9 @@
 import express, { Request, Response, Application } from 'express';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
-import { connectDB } from './config/mongodb'; // ✅ FIXED
+import { connectDB } from './config/mongodb'; 
 import { adminRouter } from './routes/adminRoute';
+import { connectCloudinary } from './config/cloudinary';
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
 connectDB();
-//todo: cloudinary connect
+connectCloudinary();
 
 app.use(cors());
 app.use(express.json());

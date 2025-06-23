@@ -10,7 +10,7 @@ const Appointment = () => {
 
   const { docId } = useParams()
   const { doctors, currencySymbol, backendUrl, token, getDoctorsData } = useContext(AppContext)
-  const daysOfWeek = ['SUN', 'MON', 'Tue', 'WED', 'THU', 'FRI', 'SAT']
+  const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
   const navigate = useNavigate()
 
@@ -25,7 +25,9 @@ const Appointment = () => {
   }
 
   const getAvailableSlots = async () => {
+    if(!docInfo) return;
     setDocSlots([]);
+
 
     let today = new Date();
 
@@ -40,7 +42,8 @@ const Appointment = () => {
         currentDate.setHours(today.getHours() > 10 ? today.getHours() + 1 : 10);
         currentDate.setMinutes(today.getMinutes() > 30 ? 30 : 0);
       } else {
-        currentDate.setHours(10, 0);
+        currentDate.setHours(10)
+        currentDate.setMinutes(0)
       }
 
       let timeSlots = [];
@@ -52,7 +55,9 @@ const Appointment = () => {
         let year = currentDate.getFullYear();
         const slotDate = `${day}_${month}_${year}`;
 
-        const isSlotAvailable = !(docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(formattedTime));
+        const isSlotAvailable = !(
+          docInfo.slots_booked?.[slotDate]?.includes(formattedTime)
+        );
 
         if (isSlotAvailable) {
           timeSlots.push({

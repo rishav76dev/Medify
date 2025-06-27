@@ -1,7 +1,7 @@
 import { ToastContainer,toast } from 'react-toastify'
 import Login from './pages/Admin/Login'
 import 'react-toastify/dist/ReactToastify.css'
-import { AdminContext } from './context/AppContext'
+import { AdminContext } from './context/AdminContext'
 import { useContext } from 'react'
 import Navbar from './components/Navbar'
 import Dashboard from './pages/Admin/Dashboard'

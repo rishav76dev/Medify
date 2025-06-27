@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AdminContext } from "../context/AdminContext";
 
+import { assets } from '../assets/assets_admin/assets'
 const Navbar = () =>{
     const { aToken, setAToken } = useContext( AdminContext)
     const logout = () => {

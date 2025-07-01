@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
+import { Request, Response, RequestHandler} from "express";
 import validator from "validator"
 import bcrypt from "bcrypt"
 import { v2 as cloudinary} from "cloudinary";
 import { DoctorModel } from "../models/doctorModel";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 
 export const addDoctor = async (req: Request, res: Response) => {
@@ -131,3 +131,27 @@ export const loginAdmin = async (req: Request, res: Response) => {
         }
     }
 };
+
+
+export const allDoctor = async (req: Request, res: Response) => {
+    try {
+        const doctors = await DoctorModel.find({}).select('-password')
+        res.json({
+            success: true,
+            doctors
+        })
+    } catch (error: unknown) {
+        console.error("failed gettting doctors data:", error);
+        if (error instanceof Error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: "An unknown error occurred while adding doctor"
+            });
+        }
+    }
+}

@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import { connectDB } from './config/mongodb'; 
 import { adminRouter } from './routes/adminRoute';
 import { connectCloudinary } from './config/cloudinary';
+import { doctorRouter } from './routes/doctorRoute';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 
 //api endpoints
 app.use('/api/admin', adminRouter)
+app.use('/api/doctor',doctorRouter)
 // Routes
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Medify Server is running!' });

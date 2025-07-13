@@ -10,4 +10,4 @@ adminRouter.post('/add-doctor',authAdmin,upload.single('image'), addDoctor)
 adminRouter.post('/login', loginAdmin)
 adminRouter.post('/all-doctor', authAdmin,allDoctor)
 
-adminRouter.post('/all-doctor', authAdmin,changeAvailability)
+adminRouter.post('/change-availability', authAdmin,changeAvailability)

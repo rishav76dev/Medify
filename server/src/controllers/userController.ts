@@ -4,7 +4,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
 import { userModel } from "../models/userModel";
-
+import { appointmentModel } from "../models/appointmentModel";
+import { DoctorModel } from "../models/doctorModel";
 export const registerUser = async (
   req: Request,
   res: Response
@@ -145,4 +146,127 @@ export const updateProfile = async (
         error instanceof Error ? error.message : "An unknown error occurred",
     });
   }
+};
+
+
+
+
+export const bookAppointment = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { userId, docId, slotDate, slotTime } = req.body;
+
+        const docData = await DoctorModel.findById(docId).select("-password");
+        if (!docData) {
+            res.json({ success: false, message: "Doctor not found" });
+            return;
+        }
+
+        if (!docData.available) {
+            res.json({ success: false, message: "Doctor not available" });
+            return;
+        }
+
+        const slotsBooked = docData.slots_booked;
+
+        if (slotsBooked[slotDate]) {
+            if (slotsBooked[slotDate].includes(slotTime)) {
+                res.json({ success: false, message: "Slot not available" });
+                return;
+            } else {
+                slotsBooked[slotDate].push(slotTime);
+            }
+        } else {
+            slotsBooked[slotDate] = [slotTime];
+        }
+
+        const userData = await userModel.findById(userId).select("-password");
+        if (!userData) {
+            res.json({ success: false, message: "User not found" });
+            return;
+        }
+
+        const { slots_booked, ...doctorDataForAppointment } = docData.toObject();
+
+        const appointmentData = {
+            userId,
+            docId,
+            userData,
+            docData: doctorDataForAppointment,
+            amount: docData.fees,
+            slotTime,
+            slotDate,
+            date: Date.now(),
+        };
+
+        const newAppointment = new appointmentModel(appointmentData);
+        await newAppointment.save();
+        await DoctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
+
+        res.json({ success: true, message: "Appointment booked" });
+    } catch (error: unknown) {
+        console.error("Error booking appointment:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};
+
+export const listAppointment = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { userId } = req.body;
+
+        const appointments = await appointmentModel.find({ userId });
+        res.json({ success: true, appointments });
+    } catch (error: unknown) {
+        console.error("Error listing appointments:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};
+
+export const cancelAppointment = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { userId, appointmentId } = req.body;
+
+        const appointmentData = await appointmentModel.findById(appointmentId);
+        if (!appointmentData) {
+            res.json({ success: false, message: "Appointment not found" });
+            return;
+        }
+
+        if (appointmentData.userId.toString() !== userId) {
+            res.json({ success: false, message: "Unauthorized action" });
+            return;
+        }
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
+
+        const { docId, slotDate, slotTime } = appointmentData;
+        const doctorData = await DoctorModel.findById(docId);
+
+        if (!doctorData) {
+            res.json({ success: false, message: "Doctor not found" });
+            return;
+        }
+
+        const slotsBooked = doctorData.slots_booked;
+        if (slotsBooked[slotDate]) {
+            slotsBooked[slotDate] = slotsBooked[slotDate].filter((time:any) => time !== slotTime);
+            if (slotsBooked[slotDate].length === 0) {
+                delete slotsBooked[slotDate];
+            }
+        }
+
+        await DoctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
+        res.json({ success: true, message: "Appointment cancelled" });
+    } catch (error: unknown) {
+        console.error("Error cancelling appointment:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
 };

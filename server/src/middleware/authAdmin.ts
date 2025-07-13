@@ -1,52 +1,38 @@
-import * as jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
-export const authAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const authAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const atokenHeader = req.headers.atoken;
-
-        if (!atokenHeader) {
-            return res.json({ success: false, message: 'Not authorized, login again' });
-        }
-
         const atoken = Array.isArray(atokenHeader) ? atokenHeader[0] : atokenHeader;
 
-        if (!process.env.JWT_SECRET) {
-            return res.status(500).json({ success: false, message: "JWT secret is not configured" });
+        if (!atoken) {
+            res.status(401).json({ success: false, message: "Not authorized, login again" });
+            return;
         }
-        if (!process.env.ADMIN_PASSWORD) {
-            return res.status(500).json({ success: false, message: "Admin password is not configured" });
+
+        if (!process.env.JWT_SECRET) {
+            res.status(500).json({ success: false, message: "JWT secret is not configured" });
+            return;
         }
         if (!process.env.ADMIN_EMAIL) {
-            return res.status(500).json({ success: false, message: "Admin email is not configured" });
+            res.status(500).json({ success: false, message: "Admin email is not configured" });
+            return;
         }
 
-        const token_decode = jwt.verify(atoken, process.env.JWT_SECRET) as jwt.JwtPayload;
+        const decoded = jwt.verify(atoken, process.env.JWT_SECRET) as jwt.JwtPayload;
 
-        if (
-            !token_decode ||
-            token_decode.email !== process.env.ADMIN_EMAIL ||
-            token_decode.password !== process.env.ADMIN_PASSWORD
-        ) {
-            return res.json({
-                success: false,
-                message: 'Not Authorized, login again'
-            });
+        if (!decoded || decoded.email !== process.env.ADMIN_EMAIL) {
+            res.status(401).json({ success: false, message: "Not authorized, login again" });
+            return;
         }
 
         next();
-    } catch (error: unknown) {
-        console.error("Please login the admin :", error);
-        if (error instanceof Error) {
-            res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        } else {
-            res.status(500).json({
-                success: false,
-                message: "An unknown error occurred while logging in"
-            });
-        }
+    } catch (error) {
+        console.error("Admin authentication error:", error);
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred while verifying admin"
+        });
     }
-}
+};

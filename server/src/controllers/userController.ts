@@ -6,6 +6,9 @@ import { v2 as cloudinary } from "cloudinary";
 import { userModel } from "../models/userModel";
 import { appointmentModel } from "../models/appointmentModel";
 import { DoctorModel } from "../models/doctorModel";
+import razorpay from 'razorpay'
+
+
 export const registerUser = async (
   req: Request,
   res: Response
@@ -264,6 +267,64 @@ export const cancelAppointment = async (req: Request, res: Response): Promise<vo
         res.json({ success: true, message: "Appointment cancelled" });
     } catch (error: unknown) {
         console.error("Error cancelling appointment:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};
+
+const razorpayInstance = new razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
+
+export const paymentRazorpay = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { appointmentId } = req.body;
+
+        const appointmentData = await appointmentModel.findById(appointmentId);
+        if (!appointmentData || appointmentData.cancelled) {
+            res.json({ success: false, message: "Appointment cancelled or not found." });
+            return;
+        }
+
+        const amount = appointmentData.amount * 100; // convert to paise
+        const currency = process.env.CURRENCY || "INR";
+
+        const options = {
+            amount,
+            currency,
+            receipt: appointmentId,
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+
+        res.json({ success: true, order });
+    } catch (error: unknown) {
+        console.error("Error in paymentRazorpay:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};
+
+export const verifyRazorpay = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { razorpay_order_id } = req.body;
+
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+
+        if (orderInfo.status === "paid") {
+            await appointmentModel.findByIdAndUpdate(orderInfo.receipt, { payment: true });
+            res.json({ success: true, message: "Payment successful" });
+        } else {
+            res.json({ success: false, message: "Payment not completed" });
+        }
+    } catch (error: unknown) {
+        console.error("Error in verifyRazorpay:", error);
         res.json({
             success: false,
             message: error instanceof Error ? error.message : "An unknown error occurred",

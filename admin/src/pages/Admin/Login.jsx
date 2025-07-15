@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react"
-import { assets } from '../../assets/assets_admin/assets'
+
 import { AdminContext } from "../../context/AdminContext";
 import { DoctorContext } from "../../context/DoctorContext";
 import { toast } from "react-toastify";
@@ -57,9 +57,9 @@ const Login = () => {
                     ? <p>Doctor Login? <span className="text-primary underline cursor-pointer" onClick={() => setState('Doctor')}>Click here</span></p>
                     : <p>Admin Login? <span className="text-primary underline cursor-pointer" onClick={() => setState('Admin')}>Click here</span></p>
                 }
-            </div>    
+            </div>
         </form>
-        
+
     )
 }
 

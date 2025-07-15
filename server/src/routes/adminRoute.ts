@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { addDoctor, allDoctor, loginAdmin } from "../controllers/adminController";
+import { addDoctor, allDoctor, appointmentsAdmin, loginAdmin } from "../controllers/adminController";
 import { upload } from "../middleware/multer";
 import { authAdmin } from "../middleware/authAdmin";
 import { changeAvailability } from "../controllers/doctorController";
@@ -11,3 +11,4 @@ adminRouter.post('/login', loginAdmin)
 adminRouter.post('/all-doctor', authAdmin,allDoctor)
 
 adminRouter.post('/change-availability', authAdmin,changeAvailability)
+adminRouter.get('/all-appointments', authAdmin, appointmentsAdmin)

@@ -191,44 +191,52 @@ export const appointmentsAdmin = async (
   }
 };
 
-export const appointmentCancel = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { appointmentId } = req.body;
+export const appointmentCancel = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { appointmentId } = req.body;
 
-        const appointmentData = await appointmentModel.findById(appointmentId);
-        if (!appointmentData) {
-            res.json({ success: false, message: "Appointment not found" });
-            return;
-        }
-
-        await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
-
-        const { docId, slotDate, slotTime } = appointmentData;
-
-        const doctorData = await DoctorModel.findById(docId);
-        if (!doctorData) {
-            res.json({ success: false, message: "Doctor not found" });
-            return;
-        }
-
-        const slotsBooked = doctorData.slots_booked;
-
-        if (slotsBooked[slotDate]) {
-            slotsBooked[slotDate] = slotsBooked[slotDate].filter((time:any) => time !== slotTime);
-
-            if (slotsBooked[slotDate].length === 0) {
-                delete slotsBooked[slotDate];
-            }
-        }
-
-        await DoctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
-
-        res.json({ success: true, message: "Appointment cancelled" });
-    } catch (error: unknown) {
-        console.error("Error cancelling appointment:", error);
-        res.json({
-            success: false,
-            message: error instanceof Error ? error.message : "An unknown error occurred",
-        });
+    const appointmentData = await appointmentModel.findById(appointmentId);
+    if (!appointmentData) {
+      res.json({ success: false, message: "Appointment not found" });
+      return;
     }
+
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      cancelled: true,
+    });
+
+    const { docId, slotDate, slotTime } = appointmentData;
+
+    const doctorData = await DoctorModel.findById(docId);
+    if (!doctorData) {
+      res.json({ success: false, message: "Doctor not found" });
+      return;
+    }
+
+    const slotsBooked = doctorData.slots_booked;
+
+    if (slotsBooked[slotDate]) {
+      slotsBooked[slotDate] = slotsBooked[slotDate].filter(
+        (time: any) => time !== slotTime
+      );
+
+      if (slotsBooked[slotDate].length === 0) {
+        delete slotsBooked[slotDate];
+      }
+    }
+
+    await DoctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
+
+    res.json({ success: true, message: "Appointment cancelled" });
+  } catch (error: unknown) {
+    console.error("Error cancelling appointment:", error);
+    res.json({
+      success: false,
+      message:
+        error instanceof Error ? error.message : "An unknown error occurred",
+    });
+  }
 };

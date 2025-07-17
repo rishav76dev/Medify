@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { DoctorModel } from "../models/doctorModel";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export const changeAvailability = async (
   req: Request,
@@ -62,3 +64,37 @@ export const doctorList = async (
   }
 };
 
+
+export const loginDoctor = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { email, password } = req.body;
+
+        const doctor = await DoctorModel.findOne({ email });
+        if (!doctor) {
+            res.json({ success: false, message: "Invalid credentials" });
+            return;
+        }
+
+        const isMatch = await bcrypt.compare(password, doctor.password);
+        if (!isMatch) {
+            res.json({ success: false, message: "Invalid credentials" });
+            return;
+        }
+
+        const secret = process.env.JWT_SECRET;
+        if (!secret) {
+            res.status(500).json({ success: false, message: "JWT secret is not configured" });
+            return;
+        }
+
+        const token = jwt.sign({ id: doctor._id }, secret);
+
+        res.json({ success: true, token });
+    } catch (error: unknown) {
+        console.error("Error logging in doctor:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};

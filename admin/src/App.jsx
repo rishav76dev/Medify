@@ -1,4 +1,4 @@
-import { ToastContainer,toast } from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
 import Login from './pages/Admin/Login'
 import 'react-toastify/dist/ReactToastify.css'
 import { AdminContext } from './context/AdminContext'

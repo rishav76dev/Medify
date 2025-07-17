@@ -29,6 +29,10 @@ function App() {
           <Route path='/all-appointments' element={<AllAppointments/>} />
           <Route path='/add-doctor' element={<AddDoctor/>} />
           <Route path='/doctor-list' element={<DoctorList/>} />
+
+          <Route path='/doctor-dashboard' element={<DoctorDashboard />} />
+          <Route path='/doctor-appointments' element={<DoctorAppointments />} />
+          <Route path='/doctor-profile' element={<DoctorProfile />} />
         </Routes>
       </div>
     </div>

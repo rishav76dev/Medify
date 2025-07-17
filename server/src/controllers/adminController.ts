@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { DoctorModel } from "../models/doctorModel";
 import jwt from "jsonwebtoken";
 import { appointmentModel } from "../models/appointmentModel";
+import { userModel } from "../models/userModel";
 
 export const addDoctor = async (req: Request, res: Response): Promise<void> => {
   const {
@@ -240,3 +241,29 @@ export const appointmentCancel = async (
     });
   }
 };
+
+export const adminDashboard = async(req:Request, res: Response): Promise<void> => {
+  try {
+    const doctors = await DoctorModel.find({})
+    const users = await userModel.find({})
+    const appointments = await appointmentModel.find({})
+
+    const dashData = {
+      doctors: doctors.length,
+      appointments: appointments.length,
+      patients: users.length,
+      latestAppointments: appointments.reverse().slice(0,5)
+    }
+
+    res.json({
+      success: true,dashData
+    })
+  } catch (error) {
+      console.error("Error fetching dashboard data", error);
+      res.json({
+      success: false,
+      message:
+        error instanceof Error ? error.message : "An unknown error occurred",
+    });
+  }
+}

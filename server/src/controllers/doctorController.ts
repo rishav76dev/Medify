@@ -216,3 +216,41 @@ export const doctorDashboard = async (
     });
   }
 };
+
+
+export const doctorProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { docId } = req.body;
+
+        const profileData = await DoctorModel.findById(docId).select("-password");
+
+        res.json({ success: true, profileData });
+    } catch (error: unknown) {
+        console.error("Error fetching doctor profile:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};
+
+
+export const updateDoctorProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { docId, fees, address, available } = req.body;
+
+        await DoctorModel.findByIdAndUpdate(docId, {
+            fees,
+            address,
+            available,
+        });
+
+        res.json({ success: true, message: "Profile updated" });
+    } catch (error: unknown) {
+        console.error("Error updating doctor profile:", error);
+        res.json({
+            success: false,
+            message: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+    }
+};
